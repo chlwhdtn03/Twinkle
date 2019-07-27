@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/infowindow"
+    android:padding="10px"
+    android:background="@drawable/rounded">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TitleText"
+        android:id="@+id/minfo_title"
+        android:textColor="#000000"
+        android:gravity="center"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="date"
+        android:id="@+id/minfo_date"
+        android:gravity="right"
+        android:textColor="#999999"
+        android:textSize="10sp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="subtitle"
+        android:id="@+id/minfo_subtitle"
+        android:textColor="#555555"
+        android:textSize="13sp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="길게 눌러 자세히 보기"
+        android:id="@+id/minfo_more"
+        android:textColor="#cccccc"
+        android:gravity="center"
+        android:textSize="10sp"/>
+</LinearLayout>
