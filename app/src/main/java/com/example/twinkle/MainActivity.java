@@ -58,6 +58,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.UiSettings;
 import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
@@ -145,14 +146,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locatebtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS);
-                cameraPosition = new CameraPosition.Builder()
-                        .target(new LatLng(x,y))
-                        .zoom(16)
-                        .bearing(mapboxMap.getCameraPosition().bearing)
-                        .tilt(40)
-                        .build();
-                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition),3000);
+                mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS,3000,16D,0D,40D,null);
+                mapboxMap.getLocationComponent().setRenderMode(RenderMode.GPS);
             }
         });
 
@@ -180,6 +175,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(@NonNull final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
 
+
+        mapboxMap.getUiSettings().setCompassEnabled(false);
+        mapboxMap.getUiSettings().setLogoEnabled(false);
         // 데이터베이스가 변경되었을 경우 이벤트
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -466,6 +464,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return nowAddress;
     }
+
 
 
 }
