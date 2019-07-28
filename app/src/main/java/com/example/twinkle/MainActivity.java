@@ -28,6 +28,8 @@ import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
@@ -110,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             new LocationChangeListeningActivityLocationCallback(this);
 
 
-    List<Feature> symbollist;
     private static final String SOURCE_ID = "SOURCE_ID";
     private static final String ICON_ID = "ICON_ID";
     private static final String LAYER_ID = "LAYER_ID";
@@ -147,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS,3000,16D,0D,40D,null);
-                mapboxMap.getLocationComponent().setRenderMode(RenderMode.GPS);
+                mapboxMap.getLocationComponent().setRenderMode(RenderMode.COMPASS);
             }
         });
 
@@ -178,6 +179,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mapboxMap.getUiSettings().setCompassEnabled(false);
         mapboxMap.getUiSettings().setLogoEnabled(false);
+        mapboxMap.getUiSettings().setAttributionEnabled(false);
+        mapboxMap.getUiSettings().setQuickZoomGesturesEnabled(true);
         // 데이터베이스가 변경되었을 경우 이벤트
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -187,19 +190,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     try {
                         System.out.println(snapshot.getValue());
+                        String hashcode = snapshot.getKey();
                         String title = (String) snapshot.child(idByTelephonyManager).child("title").getValue().toString();
                         String subtitle = (String) snapshot.child(idByTelephonyManager).child("subtitle").getValue().toString();
                         String date = (String) snapshot.child(idByTelephonyManager).child("date").getValue().toString();
                         double x = (Double) Double.parseDouble(snapshot.child(idByTelephonyManager).child("x").getValue().toString());
                         double y = (Double) Double.parseDouble(snapshot.child(idByTelephonyManager).child("y").getValue().toString());
-                        postlist.add(new Post(title, subtitle, date, x, y));
+                        postlist.add(new Post(title, subtitle, date, x, y, hashcode));
+                        Icon icon = IconFactory.getInstance(getBaseContext()).fromResource(R.drawable.post_sign_icon);
                         mapboxMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(x, y))
-                                .title(title).setSnippet(subtitle));
-
-                        Layer singleLayer = mapboxMap.getStyle().getLayer(Long.toString(mapboxMap.getMarkers().get(mapboxMap.getMarkers().size()-1).getId()));
-                        singleLayer.setProperties(
-                                PropertyFactory.iconIgnorePlacement(true));
+                                .position(new LatLng(x,y))
+                                .title(title).setSnippet(subtitle)
+                                .icon(icon));
                     } catch(NullPointerException e) {
                         continue;
                     }
@@ -223,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if(post.getTitle().equals(marker.getTitle()) && post.getSubtitle().equals(marker.getSnippet())
                             && marker.getPosition().equals(new LatLng(post.getX(), post.getY()))) {
 
-                        String[] infos = new String[5];
+                        String[] infos = new String[6];
                         Intent intent = new Intent(MainActivity.this, CustomInfoWindow.class);
 
                         infos[0] = post.getTitle();
@@ -231,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         infos[2] = post.getDate();
                         infos[3] = Double.toString(post.getX());
                         infos[4] = Double.toString(post.getY());
+                        infos[5] = post.getHashcode();
 
                         intent.putExtra("infos", infos);
                         startActivity(intent);
@@ -291,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Set the component's camera mode
             locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
             // Set the component's render mode
-            locationComponent.setRenderMode(RenderMode.GPS);
+            locationComponent.setRenderMode(RenderMode.COMPASS);
 
             initLocationEngine();
         } else {
@@ -367,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                        Toast.LENGTH_SHORT).show();
 // Pass the new location to the Maps SDK's LocationComponent
 
-                speedint = Math.round(location.getSpeed());
+                speedint = Math.round(location.getSpeed() * 1.852F);
                 speed.setText(speedint + "");
                 if (activity.mapboxMap != null && result.getLastLocation() != null) {
                     activity.mapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());

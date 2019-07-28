@@ -10,6 +10,7 @@ public class Post implements Serializable {
     private String title;
     private String subtitle;
     private String date;
+    private String hashcode;
     private double x;
     private double y;
 
@@ -19,6 +20,17 @@ public class Post implements Serializable {
         this.date = date;
         this.x = x;
         this.y = y;
+    }
+
+
+
+    public Post(String title, String subtitle, String date, double x, double y, String hashcode) {
+        this.title = title;
+        this.subtitle = subtitle;
+        this.date = date;
+        this.x = x;
+        this.y = y;
+        this.hashcode = hashcode;
     }
 
     @Exclude
@@ -32,6 +44,13 @@ public class Post implements Serializable {
         return result;
     }
 
+    public String getHashcode() {
+        return hashcode;
+    }
+
+    public void setHashcode(String hashcode) {
+        this.hashcode = hashcode;
+    }
 
     public String getTitle() {
         return title;
