@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     android:padding="10dp"
     android:orientation="vertical"
     tools:context=".Write">
@@ -11,7 +12,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="현재 위치에 작성하기"
+        android:text="작성"
         android:textSize="30sp"
         android:gravity="center"/>
 
@@ -28,6 +29,7 @@
         android:layout_height="wrap_content"
         android:textColor="#AAAAAA"
         android:id="@+id/subtitle"
+        android:maxLines="10"
         android:hint="내용"
         android:textSize="20sp" />
 
@@ -37,5 +39,14 @@
         android:layout_height="wrap_content"
         android:text="제출하기"
         android:textSize="20sp"/>
+
+    <com.mapbox.mapboxsdk.maps.MapView
+        android:id="@+id/write_mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        mapbox:mapbox_cameraTargetLat="40.73581"
+        mapbox:mapbox_cameraTargetLng="-73.99155"
+        mapbox:mapbox_cameraZoom="13">
+    </com.mapbox.mapboxsdk.maps.MapView>
 
 </LinearLayout>

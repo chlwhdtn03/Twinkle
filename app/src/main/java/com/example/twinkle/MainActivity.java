@@ -1,6 +1,7 @@
 package com.example.twinkle;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
@@ -342,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private static class LocationChangeListeningActivityLocationCallback implements LocationEngineCallback<LocationEngineResult> {
+    public static class LocationChangeListeningActivityLocationCallback implements LocationEngineCallback<LocationEngineResult> {
 
 
         private final WeakReference<MainActivity> activityWeakReference;
@@ -350,7 +351,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         LocationChangeListeningActivityLocationCallback(MainActivity activity) {
             this.activityWeakReference = new WeakReference<>(activity);
         }
-
         @Override
         public void onSuccess(LocationEngineResult result) {
             MainActivity activity = activityWeakReference.get();
