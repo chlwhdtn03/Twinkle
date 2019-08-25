@@ -1,9 +1,11 @@
 package com.example.twinkle;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.Color;
@@ -27,6 +29,7 @@ import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
@@ -51,13 +54,18 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Adapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -67,6 +75,8 @@ import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
 import com.mapbox.mapboxsdk.style.layers.FillLayer;
 import com.mapbox.mapboxsdk.style.layers.Layer;
+import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.layers.TransitionOptions;
@@ -91,16 +101,18 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
     private MapView mapView;
-    private Button zoomin, zoomout, writebtn, locatebtn;
+    private Button zoomin, zoomout, writebtn, locatebtn, listbtn;
     public static double x, y;
     public static TextView speed;
     public static int speedint;
     private static final long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
     private static final long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
-    private MapboxMap mapboxMap;
+    public static MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
     private LocationEngine locationEngine;
     private ChildEventListener mChild;
+    private ListView listview;
+    private CustomListAdapter adapter;
 
     private CameraPosition cameraPosition;
 
@@ -111,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LocationChangeListeningActivityLocationCallback callback =
             new LocationChangeListeningActivityLocationCallback(this);
+    private static List<Point> routeCoordinates = new ArrayList<>();;
 
 
     private static final String SOURCE_ID = "SOURCE_ID";
@@ -118,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String LAYER_ID = "LAYER_ID";
     private static final String ICON_SOURCE_ID = "ICON_SOURCE_ID";
     private static final String ICON_LAYER_ID = "ICON_LAYER_ID";
+    boolean listup = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,6 +145,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         writebtn = findViewById(R.id.write);
         locatebtn = findViewById(R.id.nowlocate);
         speed = findViewById(R.id.speed);
+        listview = findViewById(R.id.listview);
+        adapter = new CustomListAdapter();
+        listview.setAdapter(adapter);
+        listbtn = findViewById(R.id.viewlist);
+
+        listbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(listup == false) {
+                    listview.bringToFront();
+                    speed.bringToFront();
+                    listup = true;
+
+                } else {
+                    mapView.bringToFront();
+                    speed.bringToFront();
+                    listup = false;
+                }
+            }
+        });
 
         try {
             Context mContext = getApplicationContext();
@@ -149,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS,3000,16D,0D,40D,null);
-                mapboxMap.getLocationComponent().setRenderMode(RenderMode.COMPASS);
+                mapboxMap.getLocationComponent().setRenderMode(RenderMode.GPS);
             }
         });
 
@@ -163,12 +197,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        if(ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    65);
+        }
+        if(ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE},
+                    65);
+        }
+
+
+
 
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
 
         mapView.setMaximumFps(60);
+        mapView.getMapAsync(this);
 
 
     }
@@ -200,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         postlist.add(new Post(title, subtitle, date, x, y, hashcode));
                         Icon icon = IconFactory.getInstance(getBaseContext()).fromResource(R.drawable.post_sign_icon);
                         mapboxMap.addMarker(new MarkerOptions()
+
                                 .position(new LatLng(x,y))
                                 .title(title).setSnippet(subtitle)
                                 .icon(icon));
@@ -207,6 +257,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         continue;
                     }
                 }
+
+                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -244,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        mapboxMap.setStyle(Style.MAPBOX_STREETS
+        mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/chlwhdtn03/cjzoxtazn1mf81co3m9hkqqmn")
 
                         ,
                 new Style.OnStyleLoaded() {
@@ -252,6 +304,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     public void onStyleLoaded(@NonNull Style style) {
                         enableLocationComponent(style);
                         LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
+
                         try {
                             localizationPlugin.matchMapLanguageWithDeviceDefault();
                         } catch (RuntimeException exception) {
@@ -277,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             LocationComponentOptions locationComponentOptions = LocationComponentOptions.builder(this)
                     .accuracyAnimationEnabled(false)
+                    .elevation(5)
                     .compassAnimationEnabled(false)
                     .build();
 
@@ -292,10 +346,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // Enable to make component visible
             locationComponent.setLocationComponentEnabled(true);
+
             // Set the component's camera mode
             locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
             // Set the component's render mode
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+            locationComponent.setRenderMode(RenderMode.GPS);
 
             initLocationEngine();
         } else {
@@ -322,8 +377,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
+//        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+   }
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
@@ -370,7 +425,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                        Toast.LENGTH_SHORT).show();
 // Pass the new location to the Maps SDK's LocationComponent
 
-                speedint = Math.round(location.getSpeed() * 1.852F);
+                speedint = Math.round((location.getSpeed()*3600)/1000);
                 speed.setText(speedint + "");
                 if (activity.mapboxMap != null && result.getLastLocation() != null) {
                     activity.mapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());

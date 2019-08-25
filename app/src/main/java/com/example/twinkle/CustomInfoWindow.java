@@ -28,7 +28,7 @@ import java.util.Map;
 public class CustomInfoWindow extends AppCompatActivity {
 
     TextView title, date, locate, subtitle;
-    Button cancel, delete;
+    Button cancel, delete, findroutebtn;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,6 +84,7 @@ public class CustomInfoWindow extends AppCompatActivity {
                         .show();
             }
         });
+
 
     }
 

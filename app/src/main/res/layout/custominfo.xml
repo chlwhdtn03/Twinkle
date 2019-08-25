@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:text="길게 눌러 자세히 보기"
         android:id="@+id/minfo_more"
-        android:textColor="#cccccc"
+        android:textColor="#aaaaaa"
         android:gravity="center"
         android:textSize="10sp"/>
 </LinearLayout>
