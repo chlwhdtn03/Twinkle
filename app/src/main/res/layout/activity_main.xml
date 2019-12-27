@@ -30,21 +30,27 @@
     </com.mapbox.mapboxsdk.maps.MapView>
 
 
-    <Button
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/viewlist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#55000000"
-        android:text="..."
+        android:src="@drawable/list"
+        android:backgroundTint="#9EFFFFFF"
         android:textColor="#55555555"
         android:textSize="30sp"
         mapbox:layout_constraintRight_toRightOf="parent"
         mapbox:layout_constraintTop_toTopOf="@id/mapView" />
 
-    <Button
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/write"
+        android:src="@drawable/pencil"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:backgroundTint="#FFFFFF"
+        android:clickable="true"
+
         mapbox:layout_constraintBottom_toBottomOf="parent"
         mapbox:layout_constraintLeft_toLeftOf="parent"
         android:textSize="30sp"
@@ -57,16 +63,20 @@
         android:layout_height="wrap_content"
         android:text="0"
         android:textColor="#C5C515"
+        android:layout_marginRight="20dp"
         mapbox:layout_constraintBottom_toTopOf="@id/nowlocate"
         mapbox:layout_constraintRight_toRightOf="parent"
         android:textSize="50sp" />
 
 
-    <Button
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/nowlocate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="◎"
+        android:backgroundTint="#ffffff"
+        android:src="@drawable/my_location_black_144x144"
+        android:layout_margin="20dp
+"
         android:textSize="30sp"
         mapbox:layout_constraintBottom_toBottomOf="parent"
         mapbox:layout_constraintRight_toRightOf="parent"/>

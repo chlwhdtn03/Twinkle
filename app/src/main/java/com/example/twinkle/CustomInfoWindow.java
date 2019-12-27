@@ -16,20 +16,34 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.mapbox.android.core.location.LocationEngineRequest;
+import com.mapbox.api.directions.v5.models.DirectionsResponse;
+import com.mapbox.geojson.Point;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
+import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation;
+import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CustomInfoWindow extends AppCompatActivity {
 
     TextView title, date, locate, subtitle;
     Button cancel, delete, findroutebtn;
-
+    MapboxNavigation navigation;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,7 +58,11 @@ public class CustomInfoWindow extends AppCompatActivity {
         delete = findViewById(R.id.info_delete);
         final String[] info = getIntent().getStringArrayExtra("infos");
 
+        findroutebtn = findViewById(R.id.findRoad);
+
         Date time = new Date(info[2]);
+
+
 
         title.setText(info[0]);
         subtitle.setText(info[1]);
@@ -55,6 +73,38 @@ public class CustomInfoWindow extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+
+        findroutebtn.setOnClickListener(new View.OnClickListener() { // 경로 탐색
+            @Override
+            public void onClick(View v) {
+                Point origin = Point.fromLngLat(MainActivity.y, MainActivity.x);
+                Point destination = Point.fromLngLat(Double.parseDouble(info[4]), Double.parseDouble(info[3]));
+                NavigationRoute.builder(getApplicationContext())
+                        .accessToken(Mapbox.getAccessToken())
+                        .origin(origin)
+                        .destination(destination)
+                        .language(Locale.KOREA)
+                        .build()
+                        .getRoute(new Callback<DirectionsResponse>() {
+                            @Override
+                            public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
+                                NavigationLauncherOptions o = NavigationLauncherOptions.builder()
+                                        .directionsRoute(response.body().routes().get(0))
+                                        .shouldSimulateRoute(false)
+                                        .build();
+                                NavigationLauncher.startNavigation(CustomInfoWindow.this, o);
+
+                            }
+
+                            @Override
+                            public void onFailure(Call<DirectionsResponse> call, Throwable t) {
+
+
+                            }
+
+                        });
             }
         });
 
@@ -86,6 +136,11 @@ public class CustomInfoWindow extends AppCompatActivity {
         });
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
 }

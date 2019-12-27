@@ -46,6 +46,11 @@
         android:textSize="20sp"
         android:layout_weight="12"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/findRoad"
+        android:text="길 찾기"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

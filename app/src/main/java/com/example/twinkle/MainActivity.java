@@ -14,6 +14,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -70,6 +71,9 @@ import androidx.core.content.ContextCompat;
 
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.UiSettings;
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
 import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
@@ -85,6 +89,8 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.mapboxsdk.style.sources.RasterSource;
 import com.mapbox.mapboxsdk.style.sources.VectorSource;
 import com.mapbox.mapboxsdk.utils.BitmapUtils;
+import com.mapbox.services.android.navigation.ui.v5.NavigationView;
+import com.mapbox.services.android.navigation.ui.v5.map.NavigationMapboxMap;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -101,7 +107,7 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
     private MapView mapView;
-    private Button zoomin, zoomout, writebtn, locatebtn, listbtn;
+    private FloatingActionButton writebtn, locatebtn, listbtn;
     public static double x, y;
     public static TextView speed;
     public static int speedint;
@@ -109,11 +115,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
     public static MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
-    private LocationEngine locationEngine;
+    public static LocationEngine locationEngine;
     private ChildEventListener mChild;
     private ListView listview;
     private CustomListAdapter adapter;
-
+    private SymbolLayer countLayer;
     private CameraPosition cameraPosition;
 
     public static String idByTelephonyManager;
@@ -137,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, "pk.eyJ1IjoiY2hsd2hkdG4wMyIsImEiOiJjanM4Y205N3MwMnI2NDRxZG55YnBucWJxIn0.TTN7N6WL69jnephZ7fJAnA");
+
         setContentView(R.layout.activity_main);
 
 
@@ -253,6 +260,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 .position(new LatLng(x,y))
                                 .title(title).setSnippet(subtitle)
                                 .icon(icon));
+
+
+                        mapboxMap.getStyle().addLayer(countLayer);
+
                     } catch(NullPointerException e) {
                         continue;
                     }
@@ -400,7 +411,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public static class LocationChangeListeningActivityLocationCallback implements LocationEngineCallback<LocationEngineResult> {
 
-
         private final WeakReference<MainActivity> activityWeakReference;
 
         LocationChangeListeningActivityLocationCallback(MainActivity activity) {
@@ -416,14 +426,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (location == null) {
                     return;
                 }
-
-
-                // 위치 변경시 좌표 토스트 생성
-//                Toast.makeText(activity,
-//                        String.valueOf(result.getLastLocation().getLatitude()) + " " +
-//                        String.valueOf(result.getLastLocation().getLongitude()),
-//                        Toast.LENGTH_SHORT).show();
-// Pass the new location to the Maps SDK's LocationComponent
 
                 speedint = Math.round((location.getSpeed()*3600)/1000);
                 speed.setText(speedint + "");

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Twinkle</string>
+    <string name="was_in_tunnel" translatable="false">was_in_tunnel</string>
+    <string name="was_navigation_stopped" translatable="false">was_navigation_stopped</string>
 </resources>

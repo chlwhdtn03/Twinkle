@@ -25,6 +25,8 @@ import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
@@ -56,7 +58,10 @@ public class Write extends AppCompatActivity implements View.OnClickListener, On
     MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
     private LocationEngine locationEngine;
-
+    private static final long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private static final long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    private MainActivity.LocationChangeListeningActivityLocationCallback callback =
+            new MainActivity.LocationChangeListeningActivityLocationCallback(new MainActivity());
     double writex, writey;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,11 +75,25 @@ public class Write extends AppCompatActivity implements View.OnClickListener, On
         mapView = findViewById(R.id.write_mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+
     }
 
     @Override
     public void onMapReady(@NonNull final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
+
+        mapboxMap.addOnCameraIdleListener(new MapboxMap.OnCameraIdleListener() {
+
+            @Override
+            public void onCameraIdle() {
+                for(Marker marker : mapboxMap.getMarkers()) {
+                    mapboxMap.removeMarker(marker);
+                }
+                mapboxMap.addMarker(new MarkerOptions().position(mapboxMap.getCameraPosition().target));
+            }
+
+        });
         mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
             @Override
             public void onStyleLoaded(@NonNull Style style) {
@@ -102,7 +121,10 @@ public class Write extends AppCompatActivity implements View.OnClickListener, On
         mapboxMap.getUiSettings().setAttributionEnabled(false);
         mapboxMap.getUiSettings().setQuickZoomGesturesEnabled(true);
 
-
+        for(Marker marker : mapboxMap.getMarkers()) {
+            mapboxMap.removeMarker(marker);
+        }
+        mapboxMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.x, MainActivity.y)));
     }
 
     private void enableLocationComponent(@NonNull Style loadedMapStyle) {
@@ -138,6 +160,8 @@ public class Write extends AppCompatActivity implements View.OnClickListener, On
             // Set the component's render mode
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
+
+            locationEngine = LocationEngineProvider.getBestLocationEngine(this);
 
         } else {
             permissionsManager = new PermissionsManager(this);
